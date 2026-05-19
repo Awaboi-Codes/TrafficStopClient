@@ -1,4 +1,4 @@
-package com.example;
+package com.tcc;
 
 import net.fabricmc.api.ModInitializer;
 
