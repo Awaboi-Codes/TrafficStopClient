@@ -5,6 +5,7 @@ import net.minecraft.client.gui.GuiGraphics;
 import org.lwjgl.glfw.GLFW;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Supplier;
 
 public class DraggablePanel {
     private int x, y, width, height;
@@ -14,6 +15,12 @@ public class DraggablePanel {
     private int dragOffsetY = 0;
     private final List<PanelButton> buttons = new ArrayList<>();
 
+    // Scroll and Layout State
+    private int scrollOffset = 0;
+    private final int headerHeight = 14;
+    private final int innerPadding = 0;
+    private final int buttonSpacing = 0;
+
     public DraggablePanel(String title, int x, int y, int width, int height) {
         this.title = title;
         this.x = x;
@@ -22,20 +29,20 @@ public class DraggablePanel {
         this.height = height;
     }
 
-    // Method to easily attach buttons to this specific box instance
-    public void addButton(String label, int relativeX, int relativeY, int btnWidth, int btnHeight, PanelAction action) {
-        this.buttons.add(new PanelButton(label, relativeX, relativeY, btnWidth, btnHeight, action));
+    // Kept identical signature to match ModHUD.java init() calls
+    public void addButton(String label, Supplier<Boolean> activeSupplier, PanelAction action) {
+        // Automatically forced to stack cleanly; relativeX/Y are ignored for auto-layout
+        this.buttons.add(new PanelButton(label, 138, 20, activeSupplier, action));
     }
 
     public void render(GuiGraphics context, Font font, int mouseX, int mouseY, int screenWidth, int screenHeight) {
-        // 1. Handle Window Handle Pointer dynamically
+        // 1. Handle Dragging Logic
         long nativeWindowHandle = GLFW.glfwGetCurrentContext();
         boolean isLeftClickHeld = GLFW.glfwGetMouseButton(nativeWindowHandle, 0) == GLFW.GLFW_PRESS;
 
-        // 2. Handle Dragging Engine Math
         if (isLeftClickHeld) {
             if (!isDragging) {
-                if (mouseX >= x && mouseX <= (x + width) && mouseY >= y && mouseY <= (y + 14)) {
+                if (mouseX >= x && mouseX <= (x + width) && mouseY >= y && mouseY <= (y + headerHeight)) {
                     isDragging = true;
                     dragOffsetX = mouseX - x;
                     dragOffsetY = mouseY - y;
@@ -44,7 +51,6 @@ public class DraggablePanel {
                 x = mouseX - dragOffsetX;
                 y = mouseY - dragOffsetY;
 
-                // Keep bounded inside monitor bounds
                 if (x < 0) x = 0;
                 if (y < 0) y = 0;
                 if (x + width > screenWidth) x = screenWidth - width;
@@ -54,9 +60,9 @@ public class DraggablePanel {
             isDragging = false;
         }
 
-        // 3. Render Base Box Backgrounds
+        // 2. Render Panel Body and Header Backgrounds
         context.fill(x, y, x + width, y + height, 0xFF2D2D2D);      // Gray body
-        context.fill(x, y, x + width, y + 14, 0xFF4A4A4A);         // Header title bar
+        context.fill(x, y, x + width, y + headerHeight, 0xFFFF5900); // Header bar
 
         // Borders
         context.fill(x, y, x + width, y + 1, 0xFFFFFFFF);
@@ -64,64 +70,114 @@ public class DraggablePanel {
         context.fill(x, y, x + 1, y + height, 0xFFFFFFFF);
         context.fill(x + width - 1, y, x + width, y + height, 0xFFFFFFFF);
 
-        // Header Title Text
+        // Header Text
         context.drawString(font, title, x + 6, y + 3, 0xFFFFFFFF, false);
 
-        // 4. Render and Update Attached Buttons
+        // 3. Setup Scissor Clipping for Scrolling
+        int contentStartY = y + headerHeight + innerPadding;
+        int viewBottomY = y + height - innerPadding;
+        int viewHeight = viewBottomY - contentStartY;
+
+        int currentRelativeY = -scrollOffset;
+        int totalContentHeight = 0;
+
+        // Clip all drawings to the panel window frame bounds
+        context.enableScissor(x + 1, contentStartY, x + width - 1, viewBottomY);
+
+        // 4. Stacking Layout Loop
         for (PanelButton btn : buttons) {
-            btn.render(context, font, x, y, mouseX, mouseY);
+            int currentAbsoluteY = contentStartY + currentRelativeY;
+
+            // Auto centers button horizontally inside panel bounds
+            int btnX = x + (width - btn.w) / 2;
+
+            btn.render(context, font, btnX, currentAbsoluteY, mouseX, mouseY);
+
+            int verticalStep = btn.h + buttonSpacing;
+            currentRelativeY += verticalStep;
+            totalContentHeight += verticalStep;
+        }
+
+        context.disableScissor();
+
+        // 5. Restrict scroll boundary extensions
+        int maxScrollableDistance = Math.max(0, totalContentHeight - viewHeight - buttonSpacing);
+        if (scrollOffset > maxScrollableDistance) {
+            scrollOffset = maxScrollableDistance;
         }
     }
 
-    // Must be called from the Screen's mouseClicked method to handle button presses
+    // Process scroll delta calculations
+    public boolean handleMouseScroll(double mouseX, double mouseY, double scrollAmount) {
+        if (mouseX >= x && mouseX <= (x + width) && mouseY >= y && mouseY <= (y + height)) {
+            scrollOffset -= (int)(scrollAmount * 12); // Scroll speed tuning multiplier
+            if (scrollOffset < 0) {
+                scrollOffset = 0;
+            }
+            return true;
+        }
+        return false;
+    }
+
     public boolean handleMouseClick(double mouseX, double mouseY, int button) {
-        if (button == 0) { // Left Click
+        if (button == 0) {
+            int contentStartY = y + headerHeight + innerPadding;
+            int viewBottomY = y + height - innerPadding;
+
+            if (mouseY < contentStartY || mouseY > viewBottomY || mouseX < x || mouseX > x + width) {
+                return false;
+            }
+
+            int currentRelativeY = -scrollOffset;
             for (PanelButton btn : buttons) {
-                if (btn.isHovered((int)mouseX, (int)mouseY, x, y)) {
+                int btnAbsY = contentStartY + currentRelativeY;
+                int btnX = x + (width - btn.w) / 2;
+
+                if (btn.isHovered((int)mouseX, (int)mouseY, btnX, btnAbsY)) {
                     btn.action.onClick();
                     return true;
                 }
+                currentRelativeY += btn.h + buttonSpacing;
             }
         }
         return false;
     }
 
-    // Helper Inner Class managing the individual buttons inside this panel
     private static class PanelButton {
         String label;
-        int relX, relY, w, h;
+        int w, h;
+        Supplier<Boolean> activeSupplier;
         PanelAction action;
 
-        PanelButton(String label, int relX, int relY, int w, int h, PanelAction action) {
+        PanelButton(String label, int w, int h, Supplier<Boolean> activeSupplier, PanelAction action) {
             this.label = label;
-            this.relX = relX;
-            this.relY = relY;
             this.w = w;
             this.h = h;
+            this.activeSupplier = activeSupplier;
             this.action = action;
         }
 
-        boolean isHovered(int mx, int my, int panelX, int panelY) {
-            int absoluteX = panelX + relX;
-            int absoluteY = panelY + relY;
-            return mx >= absoluteX && mx <= (absoluteX + w) && my >= absoluteY && my <= (absoluteY + h);
+        boolean isHovered(int mx, int my, int absX, int absY) {
+            return mx >= absX && mx <= (absX + w) && my >= absY && my <= (absY + h);
         }
 
-        void render(GuiGraphics context, Font font, int panelX, int panelY, int mx, int my) {
-            int absX = panelX + relX;
-            int absY = panelY + relY;
-            boolean hovered = isHovered(mx, my, panelX, panelY);
+        void render(GuiGraphics context, Font font, int absX, int absY, int mx, int my) {
+            boolean hovered = isHovered(mx, my, absX, absY);
+            boolean isActive = activeSupplier.get();
 
-            // Change color profile depending on mouse hover position state
-            int color = hovered ? 0xFF666666 : 0xFF444444;
+            int color = hovered ? 0xFF3D3D3D : 0xFF222222;
             context.fill(absX, absY, absX + w, absY + h, color);
-            context.renderOutline(absX, absY, w, h, 0xFFFFFFFF);
 
-            // Draw button text label centered inside its frame layout
-            int textWidth = font.width(label);
-            int textX = absX + (w - textWidth) / 2;
+            if (isActive) {
+                int barWidth = 1;
+                int barColor = 0xFFFF5900;
+                context.fill(absX + w - barWidth, absY, absX + w, absY + h, barColor);
+            }
+
+            int textX = absX + 6;
             int textY = absY + (h - 8) / 2;
-            context.drawString(font, label, textX, textY, 0xFFFFFFFF, false);
+            int textColor = isActive ? 0xFFFFFFFF : 0xFFAAAAAA;
+            context.drawString(font, label, textX, textY, textColor, false);
         }
     }
 }

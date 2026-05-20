@@ -4,20 +4,33 @@ import com.mojang.blaze3d.platform.InputConstants;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
+import net.fabricmc.fabric.mixin.client.keybinding.KeyMappingAccessor;
 import net.minecraft.client.KeyMapping;
+import net.minecraft.client.player.LocalPlayerResolver;
 import net.minecraft.network.chat.Component;
-import net.minecraft.world.phys.Vec3;
 import org.lwjgl.glfw.GLFW;
 
 public class TrafficStopClient implements ClientModInitializer {
 
 	// 1. Persistent fields for HUD and configuration settings
 	private static KeyMapping openHudKey;
-	public static boolean isWebSpoofActive = false;
+	private static KeyMapping elytraBoostKey;
 
-	// 2. Persistent fields for the velocity movement modules
-	private static KeyMapping flyKey;
+	// Movement Booleans
 	public static boolean isFlying = false;
+	public static boolean isJumpHackActive = false;
+	public static boolean isNoFallActive = false;
+	public static boolean isElytraBoost = false;
+	public static boolean isElytraBoosting = false;
+	public static boolean isBoatFly = false;
+
+	// Render Booleans
+	public static boolean isESP = false;
+	public static boolean isXray = false;
+
+	// Combat Booleans
+	public static boolean isCriticals = false;
+	public static boolean isProtectSelf = false;
 
 	@Override
 	public void onInitializeClient() {
@@ -25,7 +38,14 @@ public class TrafficStopClient implements ClientModInitializer {
 		openHudKey = KeyBindingHelper.registerKeyBinding(new KeyMapping(
 				"Traffic Stop Client - Menu Open",          // Localized translation key for the Options menu
 				InputConstants.Type.KEYSYM,          // Specifies that this maps to a peripheral keyboard sensor
-				GLFW.GLFW_KEY_M,                     // Default bound key on launch
+				GLFW.GLFW_KEY_RIGHT_SHIFT,                     // Default bound key on launch
+				KeyMapping.Category.MISC             // Categorizes it in the game's menu layout under 'Miscellaneous'
+		));
+
+		elytraBoostKey = KeyBindingHelper.registerKeyBinding(new KeyMapping(
+				"Traffic Stop Client - Elytra Boost Key",          // Localized translation key for the Options menu
+				InputConstants.Type.KEYSYM,          // Specifies that this maps to a peripheral keyboard sensor
+				GLFW.GLFW_KEY_LEFT_SHIFT,                     // Default bound key on launch
 				KeyMapping.Category.MISC             // Categorizes it in the game's menu layout under 'Miscellaneous'
 		));
 
@@ -34,8 +54,15 @@ public class TrafficStopClient implements ClientModInitializer {
 			// --- MODULE A: ADMINISTRATION HUD SELECTION CHECKS ---
 			while (openHudKey.consumeClick()) {
 				if (client.player != null) {
-					client.setScreen(new ModHUD(Component.literal("Administration HUD")));
+					client.setScreen(new ModHUD(Component.literal("IdHud")));
 				}
+			}
+
+			// Check if your NoFall checkbox/boolean is enabled from your ModHUD
+			if (isElytraBoost && elytraBoostKey.isDown()) {
+				isElytraBoosting = true;
+			} else {
+				isElytraBoosting = false;
 			}
 
 			// Perform active physics adjustments if toggled on and player isn't in Spectator Mode
