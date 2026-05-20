@@ -3,7 +3,8 @@
 	"package": "com.tcc.client.mixin",
 	"compatibilityLevel": "JAVA_21",
 	"client": [
-		"TccClientMixinMovement"
+		"TccClientMixinMovement",
+		"ESPMixin"
 	],
 	"injectors": {
 		"defaultRequire": 1
