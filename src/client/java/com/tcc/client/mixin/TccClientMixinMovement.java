@@ -24,12 +24,6 @@ public class TccClientMixinMovement {
         LocalPlayer player = (LocalPlayer) (Object) this;
         Minecraft client = Minecraft.getInstance();
 
-        if (TrafficStopClient.isJumpHackActive) {
-            if (player.getDeltaMovement().y < 0) {
-                player.setOnGround(true);
-            }
-        }
-
         if (TrafficStopClient.isElytraBoosting) {
             player.setDeltaMovement(player.getHeadLookAngle().multiply(1.5, 1.5, 1.5));
         }
@@ -92,8 +86,9 @@ public class TccClientMixinMovement {
             }
         }
 
-        if (TrafficStopClient.isProtectSelf) {
-            player.crit(player.getLastAttacker());
+        if (TrafficStopClient.isProtectSelf && player.getLastAttacker() != null) {
+            player.setDeltaMovement(player.getDeltaMovement().multiply(1, 0, 1).add(0, -0.1, 0));
+            player.attack(player.getLastAttacker());
         }
     }
 
@@ -102,11 +97,8 @@ public class TccClientMixinMovement {
         LocalPlayer player = (LocalPlayer) (Object) this;
 
         // Ensure module is on, player is not in creative/spectator, and they are moving downwards
-        if (TrafficStopClient.isNoFallActive && !player.isSpectator() && !player.isCreative()) {
-            if (player.getDeltaMovement().y < 0.0) {
-                // Tells Minecraft's local player state that we are on the ground right before packet serialization
-                player.setOnGround(true);
-            }
+        if (TrafficStopClient.isGroundSpoof && !player.isSpectator() && !player.isCreative()) {
+            player.setOnGround(true);
         }
     }
 }
