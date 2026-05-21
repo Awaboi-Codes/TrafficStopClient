@@ -32,7 +32,7 @@ public class DraggablePanel {
     // Kept identical signature to match ModHUD.java init() calls
     public void addButton(String label, Supplier<Boolean> activeSupplier, PanelAction action) {
         // Automatically forced to stack cleanly; relativeX/Y are ignored for auto-layout
-        this.buttons.add(new PanelButton(label, 138, 20, activeSupplier, action));
+        this.buttons.add(new PanelButton(label, 98, 20, activeSupplier, action));
     }
 
     public void render(GuiGraphics context, Font font, int mouseX, int mouseY, int screenWidth, int screenHeight) {

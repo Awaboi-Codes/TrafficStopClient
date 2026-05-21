@@ -24,7 +24,7 @@ public class ModHUD extends Screen {
         panels.clear();
 
         // Create the Panel
-        DraggablePanel movementPanel = new DraggablePanel("Movement", 10, 30, 140, 500);
+        DraggablePanel movementPanel = new DraggablePanel("Movement", 10, 30, 100, 500);
 
         movementPanel.addButton(
                 "Velocity Fly",
@@ -33,15 +33,9 @@ public class ModHUD extends Screen {
         );
 
         movementPanel.addButton(
-                "No Fall",
-                () -> TrafficStopClient.isNoFallActive,
-                () -> { TrafficStopClient.isNoFallActive = !TrafficStopClient.isNoFallActive; }
-        );
-
-        movementPanel.addButton(
-                "Jump Hack",
-                () -> TrafficStopClient.isJumpHackActive,
-                () -> { TrafficStopClient.isJumpHackActive = !TrafficStopClient.isJumpHackActive; }
+                "Ground Spoof",
+                () -> TrafficStopClient.isGroundSpoof,
+                () -> { TrafficStopClient.isGroundSpoof = !TrafficStopClient.isGroundSpoof; }
         );
 
         movementPanel.addButton(
@@ -56,7 +50,7 @@ public class ModHUD extends Screen {
                 () -> { TrafficStopClient.isBoatFly = !TrafficStopClient.isBoatFly; }
         );
 
-        DraggablePanel renderPanel = new DraggablePanel("Render", 190, 30, 140, 500);
+        DraggablePanel renderPanel = new DraggablePanel("Render", 120, 30, 100, 500);
 
         renderPanel.addButton(
                 "Xray",
@@ -70,7 +64,7 @@ public class ModHUD extends Screen {
                 () -> { TrafficStopClient.isESP = !TrafficStopClient.isESP; }
         );
 
-        DraggablePanel combatPanel = new DraggablePanel("Combat", 360, 30, 140, 500);
+        DraggablePanel combatPanel = new DraggablePanel("Combat", 230, 30, 100, 500);
 
         combatPanel.addButton(
                 "Critical Packets",
@@ -85,17 +79,31 @@ public class ModHUD extends Screen {
         );
 
         combatPanel.addButton(
-                "Protection",
-                () -> TrafficStopClient.isProtectSelf,
-                () -> { TrafficStopClient.isProtectSelf = !TrafficStopClient.isProtectSelf; }
+                "Kill Aura",
+                () -> TrafficStopClient.isKillAura,
+                () -> { TrafficStopClient.isKillAura = !TrafficStopClient.isKillAura; }
         );
 
-        DraggablePanel automationPanel = new DraggablePanel("Automation", 530, 30, 140, 500);
+        combatPanel.addButton(
+                "Enderman",
+                () -> TrafficStopClient.isEnderman,
+                () -> { TrafficStopClient.isEnderman = !TrafficStopClient.isEnderman; }
+        );
+
+        DraggablePanel automationPanel = new DraggablePanel("Automation", 340, 30, 100, 500);
+        DraggablePanel miscPanel = new DraggablePanel("Miscellaneous", 450, 30, 100, 500);
+
+        miscPanel.addButton(
+                "Fast Use",
+                () -> TrafficStopClient.isFastUse,
+                () -> { TrafficStopClient.isFastUse = !TrafficStopClient.isFastUse; }
+        );
 
         panels.add(movementPanel);
         panels.add(renderPanel);
         panels.add(combatPanel);
         panels.add(automationPanel);
+        panels.add(miscPanel);
     }
 
     @Override
