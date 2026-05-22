@@ -3,10 +3,16 @@ package com.tcc.client;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.renderer.RenderPipelines;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier; // Correct Yarn mapping asset import path
+import net.minecraft.sounds.SoundEvent;
+import net.minecraft.sounds.SoundEvents;
+
 import java.util.ArrayList;
 import java.util.List;
+
+import net.minecraft.client.Minecraft;
 
 public class ModHUD extends Screen {
 
@@ -21,10 +27,12 @@ public class ModHUD extends Screen {
 
     @Override
     protected void init() {
+        Minecraft mc = Minecraft.getInstance();
+
         panels.clear();
 
         // Create the Panel
-        DraggablePanel movementPanel = new DraggablePanel("Movement", 10, 30, 100, 500);
+        DraggablePanel movementPanel = new DraggablePanel("Movement", 10, 10, 100, 520);
 
         movementPanel.addButton(
                 "Velocity Fly",
@@ -50,7 +58,7 @@ public class ModHUD extends Screen {
                 () -> { TrafficStopClient.isBoatFly = !TrafficStopClient.isBoatFly; }
         );
 
-        DraggablePanel renderPanel = new DraggablePanel("Render", 120, 30, 100, 500);
+        DraggablePanel renderPanel = new DraggablePanel("Render", 120, 10, 100, 520);
 
         renderPanel.addButton(
                 "Xray",
@@ -59,12 +67,21 @@ public class ModHUD extends Screen {
         );
 
         renderPanel.addButton(
-                "ESP",
-                () -> TrafficStopClient.isESP,
-                () -> { TrafficStopClient.isESP = !TrafficStopClient.isESP; }
+                "Player ESP",
+                () -> TrafficStopClient.isPlayerESP,
+                () -> {
+                    TrafficStopClient.isPlayerESP = !TrafficStopClient.isPlayerESP;
+                    mc.player.playSound(TrafficStopClient.MOD_TOGGLE, 1.0f, 1.0f);
+                }
         );
 
-        DraggablePanel combatPanel = new DraggablePanel("Combat", 230, 30, 100, 500);
+        renderPanel.addButton(
+                "Chest ESP",
+                () -> TrafficStopClient.isChestESP,
+                () -> { TrafficStopClient.isChestESP = !TrafficStopClient.isChestESP; }
+        );
+
+        DraggablePanel combatPanel = new DraggablePanel("Combat", 230, 10, 100, 520);
 
         combatPanel.addButton(
                 "Critical Packets",
@@ -90,8 +107,8 @@ public class ModHUD extends Screen {
                 () -> { TrafficStopClient.isEnderman = !TrafficStopClient.isEnderman; }
         );
 
-        DraggablePanel automationPanel = new DraggablePanel("Automation", 340, 30, 100, 500);
-        DraggablePanel miscPanel = new DraggablePanel("Miscellaneous", 450, 30, 100, 500);
+        DraggablePanel automationPanel = new DraggablePanel("Automation", 340, 10, 100, 520);
+        DraggablePanel miscPanel = new DraggablePanel("Miscellaneous", 450, 10, 100, 520);
 
         miscPanel.addButton(
                 "Fast Use",
@@ -109,18 +126,6 @@ public class ModHUD extends Screen {
     @Override
     public void render(GuiGraphics context, int mouseX, int mouseY, float delta) {
         super.render(context, mouseX, mouseY, delta);
-
-        // --- TOP LEFT CORNER BRANDING DISPLAY ---
-        int padding = 8;
-        int logoSize = 16; // Width and Height dimensions for a square logo
-
-        // Draw the Logo Texture
-        context.blit(RenderPipelines.GUI_TEXTURED, LOGO_TEXTURE, padding, logoSize, logoSize, 0, 0, logoSize, logoSize, logoSize, logoSize);
-
-        // Draw the Custom Branding Text right next to the logo
-        int textX = padding + logoSize + 6;
-        int textY = padding + (logoSize - 8) / 2;
-        context.drawString(this.font, "TrafficStop v1.0.0", textX, textY, 0xFFFF2900, true);
 
         // Render your normal draggable module panels
         for (DraggablePanel panel : panels) {

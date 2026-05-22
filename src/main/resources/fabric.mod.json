@@ -19,7 +19,9 @@
 			"com.tcc.ExampleMod"
 		],
 		"client": [
-			"com.tcc.client.TrafficStopClient"
+			"com.tcc.client.TrafficStopClient",
+			"com.tcc.client.util.render.RenderUtils",
+			"com.tcc.client.util.render.HUDRenderUtils"
 		]
 	},
 	"mixins": [

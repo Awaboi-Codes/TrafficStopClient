@@ -1,0 +1,6 @@
+{
+  "mod_toggle": {
+    "subtitle": "sound.tsc-client.ModToggle.ogg",
+    "sounds": ["tsc-client.mod_toggle"]
+  }
+}

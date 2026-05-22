@@ -1,23 +1,17 @@
 package com.tcc.client.mixin;
 
 import com.tcc.client.TrafficStopClient;
-import net.fabricmc.fabric.impl.object.builder.FabricEntityTypeImpl;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
-import net.minecraft.server.packs.linkfs.LinkFileSystem;
-import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.vehicle.boat.Boat;
 import net.minecraft.world.phys.Vec3;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.ModifyVariable;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-import javax.swing.text.html.parser.Entity;
-
 @Mixin(LocalPlayer.class) // Single clean target that safely handles both methods on the client thread
-public class TccClientMixinMovement {
+public class ClientMixinLocalPlayer {
 
     @Inject(method = "aiStep", at = @At("HEAD"))
     private void injectMovementSpoof(CallbackInfo ci) {

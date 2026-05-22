@@ -3,7 +3,9 @@
 	"package": "com.tcc.client.mixin",
 	"compatibilityLevel": "JAVA_21",
 	"client": [
-		"TccClientMixinMovement"
+		"ClientMixinLocalPlayer",
+		"ClientMixinLevelRenderer",
+		"ClientMixinGameRenderer"
 	],
 	"injectors": {
 		"defaultRequire": 1

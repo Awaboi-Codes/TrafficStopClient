@@ -5,10 +5,16 @@ import com.tcc.client.util.packetspoof.CombatUtil;
 import com.tcc.client.util.packetspoof.PacketPayload;
 
 import com.mojang.blaze3d.platform.InputConstants;
+import com.tcc.client.util.render.RenderUtils;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
+import net.fabricmc.fabric.api.client.rendering.v1.world.WorldRenderContext;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
+import net.minecraft.core.Registry;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.resources.Identifier;
+import net.minecraft.sounds.SoundEvent;
 import net.minecraft.world.phys.EntityHitResult;
 import net.fabricmc.fabric.mixin.client.keybinding.KeyMappingAccessor;
 import net.minecraft.client.KeyMapping;
@@ -18,6 +24,8 @@ import net.minecraft.server.packs.repository.Pack;
 import net.minecraft.world.phys.HitResult;
 import org.lwjgl.glfw.GLFW;
 import net.minecraft.client.Minecraft;
+
+import static com.tcc.ExampleMod.MOD_ID;
 
 public class TrafficStopClient implements ClientModInitializer {
 
@@ -33,7 +41,8 @@ public class TrafficStopClient implements ClientModInitializer {
 	public static boolean isBoatFly = false;
 
 	// Render Booleans
-	public static boolean isESP = false;
+	public static boolean isPlayerESP = false;
+	public static boolean isChestESP = false;
 	public static boolean isXray = false;
 
 	// Combat Booleans
@@ -48,8 +57,14 @@ public class TrafficStopClient implements ClientModInitializer {
 	Minecraft mc = Minecraft.getInstance();
 	private static boolean wasAttackPressed = false;
 
+	public static final SoundEvent MOD_TOGGLE = SoundEvent.createVariableRangeEvent(
+			Identifier.fromNamespaceAndPath("tsc-client", "mod_toggle"));
+
 	@Override
 	public void onInitializeClient() {
+		Registry.register(BuiltInRegistries.SOUND_EVENT, Identifier.fromNamespaceAndPath("tsc-client", "mod_toggle"),
+				SoundEvent.createVariableRangeEvent(Identifier.fromNamespaceAndPath("tsc-client", "mod_toggle")));
+
 		// 3. Register the HUD initialization key binding mapping configuration (Default: 'M' key)
 		openHudKey = KeyBindingHelper.registerKeyBinding(new KeyMapping(
 				"Traffic Stop Client - Menu Open",          // Localized translation key for the Options menu
