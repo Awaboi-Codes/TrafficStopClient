@@ -7,10 +7,9 @@ import com.tcc.client.util.packetspoof.PacketPayload;
 import com.mojang.blaze3d.platform.InputConstants;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
-import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
+import net.fabricmc.fabric.api.client.keymapping.v1.KeyMappingHelper;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.minecraft.world.phys.EntityHitResult;
-import net.fabricmc.fabric.mixin.client.keybinding.KeyMappingAccessor;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.player.LocalPlayerResolver;
 import net.minecraft.network.chat.Component;
@@ -51,21 +50,21 @@ public class TrafficStopClient implements ClientModInitializer {
 	@Override
 	public void onInitializeClient() {
 		// 3. Register the HUD initialization key binding mapping configuration (Default: 'M' key)
-		openHudKey = KeyBindingHelper.registerKeyBinding(new KeyMapping(
+		openHudKey = KeyMappingHelper.registerKeyMapping(new KeyMapping(
 				"Traffic Stop Client - Menu Open",          // Localized translation key for the Options menu
 				InputConstants.Type.KEYSYM,          // Specifies that this maps to a peripheral keyboard sensor
 				GLFW.GLFW_KEY_RIGHT_SHIFT,                     // Default bound key on launch
 				KeyMapping.Category.MISC             // Categorizes it in the game's menu layout under 'Miscellaneous'
 		));
 
-		elytraBoostKey = KeyBindingHelper.registerKeyBinding(new KeyMapping(
+		elytraBoostKey = KeyMappingHelper.registerKeyMapping(new KeyMapping(
 				"Traffic Stop Client - Elytra Boost Key",          // Localized translation key for the Options menu
 				InputConstants.Type.KEYSYM,          // Specifies that this maps to a peripheral keyboard sensor
 				GLFW.GLFW_KEY_LEFT_SHIFT,                     // Default bound key on launch
 				KeyMapping.Category.MISC             // Categorizes it in the game's menu layout under 'Miscellaneous'
 		));
 
-		PayloadTypeRegistry.playC2S().register(PacketPayload.TYPE, PacketPayload.CODEC);
+		PayloadTypeRegistry.serverboundPlay().register(PacketPayload.TYPE, PacketPayload.CODEC);
 
 
 
@@ -74,10 +73,9 @@ public class TrafficStopClient implements ClientModInitializer {
 			com.tcc.client.util.packetspoof.SpoofData spoofedPacket = new com.tcc.client.util.packetspoof.SpoofData(null, 0.0D, false);
 			boolean isAttackPressed = mc.options.keyAttack.isDown();
 			// --- MODULE A: ADMINISTRATION HUD SELECTION CHECKS ---
+
 			while (openHudKey.consumeClick()) {
-				if (client.player != null) {
-					client.setScreen(new ModHUD(Component.literal("IdHud")));
-				}
+				client.setScreen(new ModHUD(Component.literal("IdHud")));
 			}
 
 			// Check if your NoFall checkbox/boolean is enabled from your ModHUD

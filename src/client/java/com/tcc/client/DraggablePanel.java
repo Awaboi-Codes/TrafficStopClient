@@ -1,7 +1,7 @@
 package com.tcc.client;
 
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import org.lwjgl.glfw.GLFW;
 import java.util.ArrayList;
 import java.util.List;
@@ -35,7 +35,7 @@ public class DraggablePanel {
         this.buttons.add(new PanelButton(label, 98, 20, activeSupplier, action));
     }
 
-    public void render(GuiGraphics context, Font font, int mouseX, int mouseY, int screenWidth, int screenHeight) {
+    public void render(GuiGraphicsExtractor context, Font font, int mouseX, int mouseY, int screenWidth, int screenHeight) {
         // 1. Handle Dragging Logic
         long nativeWindowHandle = GLFW.glfwGetCurrentContext();
         boolean isLeftClickHeld = GLFW.glfwGetMouseButton(nativeWindowHandle, 0) == GLFW.GLFW_PRESS;
@@ -71,7 +71,7 @@ public class DraggablePanel {
         context.fill(x + width - 1, y, x + width, y + height, 0xFFFFFFFF);
 
         // Header Text
-        context.drawString(font, title, x + 6, y + 3, 0xFFFFFFFF, false);
+        context.text(font, title, x + 6, y + 3, 0xFFFFFFFF, false);
 
         // 3. Setup Scissor Clipping for Scrolling
         int contentStartY = y + headerHeight + innerPadding;
@@ -161,7 +161,7 @@ public class DraggablePanel {
             return mx >= absX && mx <= (absX + w) && my >= absY && my <= (absY + h);
         }
 
-        void render(GuiGraphics context, Font font, int absX, int absY, int mx, int my) {
+        void render(GuiGraphicsExtractor context, Font font, int absX, int absY, int mx, int my) {
             boolean hovered = isHovered(mx, my, absX, absY);
             boolean isActive = activeSupplier.get();
 
@@ -177,7 +177,7 @@ public class DraggablePanel {
             int textX = absX + 6;
             int textY = absY + (h - 8) / 2;
             int textColor = isActive ? 0xFFFFFFFF : 0xFFAAAAAA;
-            context.drawString(font, label, textX, textY, textColor, false);
+            context.text(font, label, textX, textY, textColor, false);
         }
     }
 }

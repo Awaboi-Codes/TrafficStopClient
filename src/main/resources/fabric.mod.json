@@ -1,38 +1,17 @@
 {
-	"schemaVersion": 1,
-	"id": "tsc-client",
-	"version": "${version}",
-	"name": "Traffic Stop Client",
-	"description": "Welcome to Highway 2b2t",
-	"authors": [
-		"awaboi"
-	],
-	"contact": {
-		"homepage": "https://fabricmc.net/",
-		"sources": "https://github.com/Awaboi-Codes/TrafficStopClient"
-	},
-	"license": "MIT",
-	"icon": "assets/tsc-client/icon.png",
-	"environment": "client",
-	"entrypoints": {
-		"main": [
-			"com.tcc.ExampleMod"
-		],
-		"client": [
-			"com.tcc.client.TrafficStopClient"
-		]
-	},
-	"mixins": [
-		"modid.mixins.json",
-		{
-			"config": "modid.client.mixins.json",
-			"environment": "client"
-		}
-	],
-	"depends": {
-		"fabricloader": ">=0.19.2",
-		"minecraft": "~1.21.11",
-		"java": ">=21",
-		"fabric-api": "*"
-	}
+  "schemaVersion": 1,
+  "id": "tsc-client",
+  "version": "1.1.0",
+  "name": "Traffic Stop Client",
+  "environment": "client",
+  "entrypoints": {
+    "client": [
+      "com.tcc.client.TrafficStopClient"
+    ]
+  },
+  "depends": {
+    "fabricloader": ">=0.16.0",
+    "minecraft": ">=26.1",
+    "java": ">=25"
+  }
 }

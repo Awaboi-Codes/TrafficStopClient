@@ -6,6 +6,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.network.protocol.game.ServerboundInteractPacket;
 import net.minecraft.network.protocol.game.ServerboundMovePlayerPacket;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
+import net.minecraft.server.packs.repository.Pack;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
@@ -118,7 +119,11 @@ public class CombatUtil {
         }
 
         // 4. Send the attack validation sequence
-        mc.getConnection().send(ServerboundInteractPacket.createAttackPacket(data.target, mc.player.isShiftKeyDown()));
+        com.tcc.client.util.packetspoof.SpoofData dataProfile =
+                new com.tcc.client.util.packetspoof.SpoofData(data.target, 2.5D, false);
+
+        // Let the engine parse it, send your Custom Packet, and handle vanilla synchronization
+        com.tcc.client.util.packetspoof.CombatUtil.parseAndSendPacket(dataProfile);
         mc.player.swing(InteractionHand.MAIN_HAND);
     }
 

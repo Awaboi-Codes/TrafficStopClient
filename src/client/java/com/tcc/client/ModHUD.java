@@ -1,6 +1,6 @@
 package com.tcc.client;
 
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.network.chat.Component;
@@ -106,10 +106,7 @@ public class ModHUD extends Screen {
         panels.add(miscPanel);
     }
 
-    @Override
-    public void render(GuiGraphics context, int mouseX, int mouseY, float delta) {
-        super.render(context, mouseX, mouseY, delta);
-
+    public void render(GuiGraphicsExtractor context, int mouseX, int mouseY, float delta) {
         // --- TOP LEFT CORNER BRANDING DISPLAY ---
         int padding = 8;
         int logoSize = 16; // Width and Height dimensions for a square logo
@@ -120,7 +117,8 @@ public class ModHUD extends Screen {
         // Draw the Custom Branding Text right next to the logo
         int textX = padding + logoSize + 6;
         int textY = padding + (logoSize - 8) / 2;
-        context.drawString(this.font, "TrafficStop v1.0.0", textX, textY, 0xFFFF2900, true);
+        // 26.1 REFACTOR: Replace context.drawString with context.text
+        context.text(this.font, "TrafficStop v1.0.0", textX, textY, 0xFFFF2900, true);
 
         // Render your normal draggable module panels
         for (DraggablePanel panel : panels) {
