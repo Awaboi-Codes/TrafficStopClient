@@ -20,6 +20,7 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
@@ -48,7 +49,8 @@ public class TrafficStopClient implements ClientModInitializer {
 	public static boolean isStrafe = false;
 	public static boolean isJesus = false;
 	public static boolean isQuickElytraTakeoff = false;
-	public static boolean wasJumpPressed = false;
+	private static boolean wasUsingFirework = false;
+	private static boolean takeoffPending = false;
 
 	// Render Booleans
 	public static boolean isPlayerESP = false;
@@ -122,14 +124,29 @@ public class TrafficStopClient implements ClientModInitializer {
 			}
 
 			if (isQuickElytraTakeoff && client.player != null) {
-				boolean jumpDown = client.options.keyJump.isDown();
-				if (jumpDown && !wasJumpPressed && !client.player.isFallFlying()) {
+				boolean wantsToGlide = false;
+
+				ItemStack mainHand = client.player.getMainHandItem();
+				boolean usingFirework = client.player.isUsingItem() && mainHand.is(Items.FIREWORK_ROCKET);
+				if (elytraBoostKey.isDown() && client.player.getItemBySlot(EquipmentSlot.CHEST).is(Items.ELYTRA)) wantsToGlide = true;
+				if (usingFirework && !wasUsingFirework) wantsToGlide = true;
+				wasUsingFirework = usingFirework;
+
+				if (wantsToGlide && !client.player.isFallFlying()) {
+					if (client.player.onGround()) {
+						// Jump first, schedule glide for next tick
+						client.player.jumpFromGround();
+						takeoffPending = true;
+					}
+				}
+
+				if (takeoffPending && !client.player.onGround() && !client.player.isFallFlying()) {
 					client.player.connection.send(new ServerboundPlayerCommandPacket(
 							client.player,
 							ServerboundPlayerCommandPacket.Action.START_FALL_FLYING
 					));
+					takeoffPending = false;
 				}
-				wasJumpPressed = jumpDown;
 			}
 
 			if (isKillAura) {
