@@ -13,8 +13,11 @@ import net.fabricmc.fabric.api.client.rendering.v1.world.WorldRenderContext;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.network.protocol.game.ServerboundPlayerCommandPacket;
 import net.minecraft.resources.Identifier;
 import net.minecraft.sounds.SoundEvent;
+import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.phys.EntityHitResult;
 import net.fabricmc.fabric.mixin.client.keybinding.KeyMappingAccessor;
 import net.minecraft.client.KeyMapping;
@@ -22,6 +25,7 @@ import net.minecraft.client.player.LocalPlayerResolver;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.packs.repository.Pack;
 import net.minecraft.world.phys.HitResult;
+import net.minecraft.world.phys.Vec3;
 import org.lwjgl.glfw.GLFW;
 import net.minecraft.client.Minecraft;
 
@@ -35,14 +39,17 @@ public class TrafficStopClient implements ClientModInitializer {
 
 	// Movement Booleans
 	public static boolean isFlying = false;
+	public static boolean isElytraFly = false;
 	public static boolean isGroundSpoof = false;
 	public static boolean isElytraBoost = false;
 	public static boolean isElytraBoosting = false;
 	public static boolean isBoatFly = false;
+	public static boolean isStrafe = false;
 
 	// Render Booleans
 	public static boolean isPlayerESP = false;
 	public static boolean isChestESP = false;
+	public static boolean isBaseESP = false;
 	public static boolean isXray = false;
 
 	// Combat Booleans
@@ -104,6 +111,94 @@ public class TrafficStopClient implements ClientModInitializer {
 
 			if (isKillAura) {
 				CombatUtil.killAura();
+			}
+
+			if (TrafficStopClient.isElytraFly && client.player != null) {
+				// Corrected check: if the player is NOT wearing an elytra, skip the code
+				if (client.player.getItemBySlot(EquipmentSlot.CHEST).is(Items.ELYTRA)) {
+					// 1. Force the server-side flight packet if not already flying
+					if (!client.player.isFallFlying()) {
+						client.player.connection.send(new ServerboundPlayerCommandPacket(
+								client.player,
+								ServerboundPlayerCommandPacket.Action.START_FALL_FLYING
+						));
+					}
+
+					// 2. Grab current directional viewing angles from the player
+					float yaw = client.player.getYRot();
+					double radYaw = Math.toRadians(yaw);
+
+					// 3. Set movement speed multipliers
+					double horizontalSpeed = 1.6;
+					double verticalSpeed = 0.0;
+
+					// 4. Track keyboard movement inputs using client game options
+					double forward = 0;
+					double strafe = 0;
+
+					if (client.options.keyUp.isDown()) forward += 1;
+					if (client.options.keyDown.isDown()) forward -= 1;
+					if (client.options.keyLeft.isDown()) strafe -= 1;
+					if (client.options.keyRight.isDown()) strafe += 1;
+
+					// 5. Calculate vertical movement using Spacebar and Shift keys
+					if (client.options.keyJump.isDown()) {
+						verticalSpeed = 0.5;
+					} else if (client.options.keyShift.isDown()) {
+						verticalSpeed = -0.5;
+					} else {
+						// Tiny negative value prevents the server from canceling elytra flight status
+						verticalSpeed = -0.01;
+					}
+
+					// 6. Normalize diagonal vectors
+					if (forward != 0 && strafe != 0) {
+						forward *= 0.7071;
+						strafe *= 0.7071;
+					}
+
+					// 7. Translate keyboard inputs to 3D world vectors
+					double motionX = -(Math.sin(radYaw) * forward + Math.cos(radYaw) * strafe) * horizontalSpeed;
+					double motionZ = (Math.cos(radYaw) * forward - Math.sin(radYaw) * strafe) * horizontalSpeed;
+					double motionY = verticalSpeed;
+
+					// 8. Override velocity
+					client.player.setDeltaMovement(new Vec3(motionX, motionY, motionZ));
+				}
+			}
+
+			if (TrafficStopClient.isStrafe && client.player != null) {
+				// 1. Grab current directional viewing angles from the player
+				float yaw = client.player.getYRot();
+				double radYaw = Math.toRadians(yaw);
+
+				// 2. Set movement speed multipliers
+				double horizontalSpeed = 0.5;
+
+				// 3. Track keyboard movement inputs using client game options
+				double forward = 0;
+				double strafe = 0;
+
+				if (client.options.keyUp.isDown()) forward += 1;
+				if (client.options.keyDown.isDown()) forward -= 1;
+				if (client.options.keyLeft.isDown()) strafe -= 1;
+				if (client.options.keyRight.isDown()) strafe += 1;
+
+				// 4. Normalize vector math if moving diagonally to prevent moving faster sideways
+				if (forward != 0 && strafe != 0) {
+					forward *= 0.7071;
+					strafe *= 0.7071;
+				}
+
+				// 5. Translate keyboard inputs to 3D world vectors
+				double motionX = -(Math.sin(radYaw) * forward + Math.cos(radYaw) * strafe) * horizontalSpeed;
+				double motionZ = (Math.cos(radYaw) * forward - Math.sin(radYaw) * strafe) * horizontalSpeed;
+
+				// 6. Keep the player's existing Y velocity so falling, jumping, and gravity still function properly
+				double motionY = client.player.getDeltaMovement().y;
+
+				// 7. Override velocity cleanly without breaking game physics
+				client.player.setDeltaMovement(new Vec3(motionX, motionY, motionZ));
 			}
 
 			if (isCriticals) {

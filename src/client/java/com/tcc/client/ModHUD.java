@@ -41,6 +41,18 @@ public class ModHUD extends Screen {
         );
 
         movementPanel.addButton(
+                "Boat Fly",
+                () -> TrafficStopClient.isBoatFly,
+                () -> { TrafficStopClient.isBoatFly = !TrafficStopClient.isBoatFly; }
+        );
+
+        movementPanel.addButton(
+                "Elytra Fly",
+                () -> TrafficStopClient.isElytraFly,
+                () -> { TrafficStopClient.isElytraFly = !TrafficStopClient.isElytraFly; }
+        );
+
+        movementPanel.addButton(
                 "Ground Spoof",
                 () -> TrafficStopClient.isGroundSpoof,
                 () -> { TrafficStopClient.isGroundSpoof = !TrafficStopClient.isGroundSpoof; }
@@ -53,9 +65,9 @@ public class ModHUD extends Screen {
         );
 
         movementPanel.addButton(
-                "Boat Fly",
-                () -> TrafficStopClient.isBoatFly,
-                () -> { TrafficStopClient.isBoatFly = !TrafficStopClient.isBoatFly; }
+                "Strafe",
+                () -> TrafficStopClient.isStrafe,
+                () -> { TrafficStopClient.isStrafe = !TrafficStopClient.isStrafe; }
         );
 
         DraggablePanel renderPanel = new DraggablePanel("Render", 120, 10, 100, 520);
@@ -79,6 +91,12 @@ public class ModHUD extends Screen {
                 "Chest ESP",
                 () -> TrafficStopClient.isChestESP,
                 () -> { TrafficStopClient.isChestESP = !TrafficStopClient.isChestESP; }
+        );
+
+        renderPanel.addButton(
+                "Base ESP",
+                () -> TrafficStopClient.isBaseESP,
+                () -> { TrafficStopClient.isBaseESP = !TrafficStopClient.isBaseESP; }
         );
 
         DraggablePanel combatPanel = new DraggablePanel("Combat", 230, 10, 100, 520);
@@ -116,11 +134,14 @@ public class ModHUD extends Screen {
                 () -> { TrafficStopClient.isFastUse = !TrafficStopClient.isFastUse; }
         );
 
+        DraggablePanel dupePanel = new DraggablePanel("Dupes", 560, 10, 100, 520);
+
         panels.add(movementPanel);
         panels.add(renderPanel);
         panels.add(combatPanel);
         panels.add(automationPanel);
         panels.add(miscPanel);
+        panels.add(dupePanel);
     }
 
     @Override

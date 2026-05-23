@@ -132,7 +132,7 @@ public class RenderUtils implements ClientModInitializer {
 
                     chunk.getBlockEntities().forEach((pos, blockEntity) -> {
                         Block block = mc.level.getBlockState(pos).getBlock();
-                        if (!EspUtils.ESP_BLOCKS.contains(block)) return;
+                        if (!EspUtils.CHEST_ESP_BLOCKS.contains(block)) return;
 
                         AABB box = new AABB(pos);
                         matrices.pushPose();
@@ -149,6 +149,39 @@ public class RenderUtils implements ClientModInitializer {
                 }
             }
         }
+
+        if (TrafficStopClient.isBaseESP) {
+            Vec3 camera = context.worldState().cameraRenderState.pos;
+            PoseStack matrices = context.matrices();
+            int playerChunkX = mc.player.chunkPosition().x;
+            int playerChunkZ = mc.player.chunkPosition().z;
+            int chunkRadius = 8; // loaded chunk radius
+
+            for (int cx = playerChunkX - chunkRadius; cx <= playerChunkX + chunkRadius; cx++) {
+                for (int cz = playerChunkZ - chunkRadius; cz <= playerChunkZ + chunkRadius; cz++) {
+                    LevelChunk chunk = mc.level.getChunkSource().getChunkNow(cx, cz);
+                    if (chunk == null) continue;
+
+                    chunk.getBlockEntities().forEach((pos, blockEntity) -> {
+                        Block block = mc.level.getBlockState(pos).getBlock();
+                        if (!EspUtils.BASE_ESP_BLOCKS.contains(block)) return;
+
+                        AABB box = new AABB(pos);
+                        matrices.pushPose();
+                        matrices.translate(-camera.x, -camera.y, -camera.z);
+                        if (buffer == null) {
+                            buffer = new BufferBuilder(allocator, FILLED_THROUGH_WALLS.getVertexFormatMode(), FILLED_THROUGH_WALLS.getVertexFormat());
+                        }
+                        renderFilledBox(matrices.last().pose(), buffer,
+                                (float) box.minX, (float) box.minY, (float) box.minZ,
+                                (float) box.maxX, (float) box.maxY, (float) box.maxZ,
+                                1f, 0.5f, 0f, 0.3f);
+                        matrices.popPose();
+                    });
+                }
+            }
+        }
+
         if (buffer != null) {
             drawFilledThroughWalls(mc, FILLED_THROUGH_WALLS);
         }

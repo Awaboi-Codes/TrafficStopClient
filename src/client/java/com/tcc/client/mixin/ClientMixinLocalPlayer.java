@@ -3,7 +3,11 @@ package com.tcc.client.mixin;
 import com.tcc.client.TrafficStopClient;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.entity.Pose;
 import net.minecraft.world.entity.vehicle.boat.Boat;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.phys.Vec3;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -22,6 +26,8 @@ public class ClientMixinLocalPlayer {
             player.setDeltaMovement(player.getHeadLookAngle().multiply(1.5, 1.5, 1.5));
         }
 
+
+
         // Only manipulate physics calculations if the cheat button was toggled ON
         if (TrafficStopClient.isFlying) {
             // 1. Force the engine to think you are stuck in a cobweb frame loop.
@@ -29,7 +35,7 @@ public class ClientMixinLocalPlayer {
 
             // 2. Spoof player status vectors to simulate vertical resistance
             if (player.getDeltaMovement().y < 0) {
-                player.setDeltaMovement(player.getDeltaMovement().multiply(1.0, 1, 1.0));
+                player.setDeltaMovement(player.getDeltaMovement().multiply(1.0, -0.1, 1.0));
                 player.setOnGround(false);
             }
         }

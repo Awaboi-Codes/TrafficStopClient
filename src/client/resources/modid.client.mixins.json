@@ -5,7 +5,8 @@
 	"client": [
 		"ClientMixinLocalPlayer",
 		"ClientMixinLevelRenderer",
-		"ClientMixinGameRenderer"
+		"ClientMixinGameRenderer",
+		"ClientMixinPlayer"
 	],
 	"injectors": {
 		"defaultRequire": 1
