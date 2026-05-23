@@ -126,6 +126,13 @@ public class ModHUD extends Screen {
         );
 
         DraggablePanel automationPanel = new DraggablePanel("Automation", 340, 10, 100, 520);
+
+        automationPanel.addButton(
+                "Trench Bot",
+                () -> TrafficStopClient.isTrenchBot,
+                () -> { TrafficStopClient.isTrenchBot = !TrafficStopClient.isTrenchBot; }
+        );
+
         DraggablePanel miscPanel = new DraggablePanel("Miscellaneous", 450, 10, 100, 520);
 
         miscPanel.addButton(
@@ -134,7 +141,14 @@ public class ModHUD extends Screen {
                 () -> { TrafficStopClient.isFastUse = !TrafficStopClient.isFastUse; }
         );
 
+        miscPanel.addButton(
+                "Bridge",
+                () -> TrafficStopClient.isBridge,
+                () -> { TrafficStopClient.isBridge = !TrafficStopClient.isBridge; }
+        );
+
         DraggablePanel dupePanel = new DraggablePanel("Dupes", 560, 10, 100, 520);
+        DraggablePanel griefPanel = new DraggablePanel("Griefs", 670, 10, 100, 520);
 
         panels.add(movementPanel);
         panels.add(renderPanel);
@@ -142,6 +156,7 @@ public class ModHUD extends Screen {
         panels.add(automationPanel);
         panels.add(miscPanel);
         panels.add(dupePanel);
+        panels.add(griefPanel);
     }
 
     @Override

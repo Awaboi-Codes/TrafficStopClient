@@ -64,9 +64,13 @@ public class HUDRenderUtils implements ClientModInitializer {
         if (TrafficStopClient.isEnderman) active.add("Enderman");
         if (TrafficStopClient.isFastUse) active.add("Fast Use");
         if (TrafficStopClient.isFlying) active.add("Fly");
+        if (TrafficStopClient.isElytraFly) active.add("Elytra Fly");
         if (TrafficStopClient.isGroundSpoof) active.add("Ground Spoof");
         if (TrafficStopClient.isElytraBoost) active.add("Elytra Boost");
         if (TrafficStopClient.isBoatFly) active.add("Boat Fly");
+        if (TrafficStopClient.isStrafe) active.add("Strafe");
+        if (TrafficStopClient.isBridge) active.add("Bridge");
+        if (TrafficStopClient.isTrenchBot) active.add("Trench Bot");
         return active;
     }
 }

@@ -11,13 +11,18 @@ import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
 import net.fabricmc.fabric.api.client.rendering.v1.world.WorldRenderContext;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.protocol.game.ServerboundPlayerCommandPacket;
 import net.minecraft.resources.Identifier;
 import net.minecraft.sounds.SoundEvent;
+import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.EntityHitResult;
 import net.fabricmc.fabric.mixin.client.keybinding.KeyMappingAccessor;
 import net.minecraft.client.KeyMapping;
@@ -60,6 +65,10 @@ public class TrafficStopClient implements ClientModInitializer {
 
 	// Miscellaneous Booleans
 	public static boolean isFastUse = false;
+	public static boolean isBridge = false;
+
+	// Griefing Booleans
+	public static boolean isTrenchBot = false;
 
 	Minecraft mc = Minecraft.getInstance();
 	private static boolean wasAttackPressed = false;
@@ -164,6 +173,28 @@ public class TrafficStopClient implements ClientModInitializer {
 
 					// 8. Override velocity
 					client.player.setDeltaMovement(new Vec3(motionX, motionY, motionZ));
+				}
+			}
+
+			if (TrafficStopClient.isBridge && client.player != null) {
+				if (mc.hitResult == null || mc.hitResult.getType() != HitResult.Type.BLOCK) {
+					if (mc.options.keyUse.isDown()) {
+						// No block hit, place under player
+						BlockPos pos = client.player.blockPosition().below();
+						BlockState state = client.level.getBlockState(pos);
+						if (state.isAir()) {
+							client.gameMode.useItemOn(
+									client.player,
+									InteractionHand.MAIN_HAND,
+									new BlockHitResult(
+											Vec3.atCenterOf(pos),
+											Direction.UP,
+											pos,
+											false
+									)
+							);
+						}
+					}
 				}
 			}
 
