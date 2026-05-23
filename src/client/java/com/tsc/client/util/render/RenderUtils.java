@@ -153,33 +153,36 @@ public class RenderUtils implements ClientModInitializer {
 
         if (TrafficStopClient.isPlayerESP) {
             for (Entity entity : mc.level.entitiesForRendering()) {
-                // 1. Check if it's a Player first, and handle the local player check safely
+
+                // 1. Only proceed if the entity is actually a Player
                 if (entity instanceof Player player) {
-                    if (player == mc.player) continue;
+
+                    // 2. Safely skip the local player (assuming 'plr' is the client player)
+                    if (player == plr) continue;
+
+                    matrices.pushPose();
+                    matrices.translate(-camera.x, -camera.y, -camera.z);
+
+                    // 3. Use the base entity to get the bounding box
+                    AABB box = entity.getBoundingBox();
+
+                    // Filled box
+                    if (buffer == null) {
+                        buffer = new BufferBuilder(allocator, FILLED_THROUGH_WALLS.getVertexFormatMode(), FILLED_THROUGH_WALLS.getVertexFormat());
+                    }
+                    renderFilledBox(matrices.last().pose(), buffer, (float) box.minX, (float) box.minY, (float) box.minZ, (float) box.maxX, (float) box.maxY, (float) box.maxZ, 0f, 1f, 0f, 0.3f);
+
+                    // Tracer to entity center
+                    if (lineBuffer == null) {
+                        lineBuffer = new BufferBuilder(lineAllocator, LINES_THROUGH_WALLS.getVertexFormatMode(), LINES_THROUGH_WALLS.getVertexFormat());
+                    }
+                    float targetX = (float)(box.minX + box.maxX) / 2f;
+                    float targetY = (float)(box.minY + box.maxY) / 2f;
+                    float targetZ = (float)(box.minZ + box.maxZ) / 2f;
+                    renderTracer(matrices.last().pose(), lineBuffer, (float)tracerStartX, (float)tracerStartY, (float)tracerStartZ, targetX, targetY, targetZ, 0f, 1f, 0f, 0.9f);
+
+                    matrices.popPose();
                 }
-
-                matrices.pushPose();
-                matrices.translate(-camera.x, -camera.y, -camera.z);
-
-                // 3. Use the base entity to get the bounding box so it works for both classes
-                AABB box = entity.getBoundingBox();
-
-                // Filled box
-                if (buffer == null) {
-                    buffer = new BufferBuilder(allocator, FILLED_THROUGH_WALLS.getVertexFormatMode(), FILLED_THROUGH_WALLS.getVertexFormat());
-                }
-                renderFilledBox(matrices.last().pose(), buffer, (float) box.minX, (float) box.minY, (float) box.minZ, (float) box.maxX, (float) box.maxY, (float) box.maxZ, 0f, 1f, 0f, 0.3f);
-
-                // Tracer to entity center
-                if (lineBuffer == null) {
-                    lineBuffer = new BufferBuilder(lineAllocator, LINES_THROUGH_WALLS.getVertexFormatMode(), LINES_THROUGH_WALLS.getVertexFormat());
-                }
-                float targetX = (float)(box.minX + box.maxX) / 2f;
-                float targetY = (float)(box.minY + box.maxY) / 2f;
-                float targetZ = (float)(box.minZ + box.maxZ) / 2f;
-                renderTracer(matrices.last().pose(), lineBuffer, (float)tracerStartX, (float)tracerStartY, (float)tracerStartZ, targetX, targetY, targetZ, 0f, 1f, 0f, 0.9f);
-
-                matrices.popPose();
             }
         }
 
