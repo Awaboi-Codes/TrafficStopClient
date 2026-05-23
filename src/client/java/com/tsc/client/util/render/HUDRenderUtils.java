@@ -1,10 +1,9 @@
-package com.tcc.client.util.render;
+package com.tsc.client.util.render;
 
-import com.tcc.client.TrafficStopClient;
+import com.tsc.client.TrafficStopClient;
 import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.resources.Identifier;
 import net.minecraft.util.ARGB;
 import net.minecraft.util.Mth;
@@ -13,8 +12,6 @@ import net.minecraft.util.Util;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.rendering.v1.hud.HudElementRegistry;
 import net.fabricmc.fabric.api.client.rendering.v1.hud.VanillaHudElements;
-
-import com.tcc.ExampleMod;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -65,7 +62,7 @@ public class HUDRenderUtils implements ClientModInitializer {
         if (TrafficStopClient.isFastUse) active.add("Fast Use");
         if (TrafficStopClient.isFlying) active.add("Fly");
         if (TrafficStopClient.isElytraFly) active.add("Elytra Fly");
-        if (TrafficStopClient.isGroundSpoof) active.add("Ground Spoof");
+        if (TrafficStopClient.isNoFall) active.add("No Fall");
         if (TrafficStopClient.isElytraBoost) active.add("Elytra Boost");
         if (TrafficStopClient.isBoatFly) active.add("Boat Fly");
         if (TrafficStopClient.isStrafe) active.add("Strafe");

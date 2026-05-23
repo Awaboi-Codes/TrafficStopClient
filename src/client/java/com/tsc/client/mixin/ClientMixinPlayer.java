@@ -1,6 +1,6 @@
-package com.tcc.client.mixin;
+package com.tsc.client.mixin;
 
-import com.tcc.client.TrafficStopClient;
+import com.tsc.client.TrafficStopClient;
 import net.minecraft.world.entity.Pose;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.player.Player;

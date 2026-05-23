@@ -1,6 +1,4 @@
-package com.tcc.client.util.packetspoof;
-
-import com.tcc.client.util.packetspoof.PacketPayload;
+package com.tsc.client.util.packetspoof;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.protocol.game.ServerboundInteractPacket;
@@ -11,8 +9,7 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemUseAnimation;
 import net.minecraft.world.item.Items;
-import net.minecraft.world.phys.EntityHitResult;
-import net.minecraft.world.phys.HitResult;
+
 import java.util.List;
 
 public class CombatUtil {

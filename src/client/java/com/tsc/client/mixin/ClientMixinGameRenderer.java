@@ -1,4 +1,4 @@
-package com.tcc.client.mixin;
+package com.tsc.client.mixin;
 
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -7,7 +7,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import net.minecraft.client.renderer.GameRenderer;
 
-import com.tcc.client.util.render.RenderUtils;
+import com.tsc.client.util.render.RenderUtils;
 
 @Mixin(GameRenderer.class)
 public class ClientMixinGameRenderer {

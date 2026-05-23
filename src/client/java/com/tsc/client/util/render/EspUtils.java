@@ -1,4 +1,4 @@
-package com.tcc.client.util.render;
+package com.tsc.client.util.render;
 
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;

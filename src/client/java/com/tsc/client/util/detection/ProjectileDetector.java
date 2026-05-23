@@ -1,4 +1,4 @@
-package com.tcc.client.util.detection;
+package com.tsc.client.util.detection;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.world.entity.projectile.arrow.AbstractArrow;

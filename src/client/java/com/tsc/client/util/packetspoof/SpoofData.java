@@ -1,4 +1,4 @@
-package com.tcc.client.util.packetspoof;
+package com.tsc.client.util.packetspoof;
 
 import net.minecraft.world.entity.Entity;
 

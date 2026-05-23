@@ -1,21 +1,23 @@
-package com.tcc.client.mixin;
+package com.tsc.client.mixin;
 
-import com.tcc.client.TrafficStopClient;
+import com.tsc.client.TrafficStopClient;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
-import net.minecraft.world.entity.EquipmentSlot;
-import net.minecraft.world.entity.Pose;
 import net.minecraft.world.entity.vehicle.boat.Boat;
-import net.minecraft.world.item.Item;
-import net.minecraft.world.item.Items;
 import net.minecraft.world.phys.Vec3;
+import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(LocalPlayer.class) // Single clean target that safely handles both methods on the client thread
 public class ClientMixinLocalPlayer {
+
+    @Shadow
+    @Final
+    protected Minecraft minecraft;
 
     @Inject(method = "aiStep", at = @At("HEAD"))
     private void injectMovementSpoof(CallbackInfo ci) {
@@ -35,7 +37,7 @@ public class ClientMixinLocalPlayer {
 
             // 2. Spoof player status vectors to simulate vertical resistance
             if (player.getDeltaMovement().y < 0) {
-                player.setDeltaMovement(player.getDeltaMovement().multiply(1.0, -0.1, 1.0));
+                player.setDeltaMovement(player.getDeltaMovement().multiply(TrafficStopClient.velocityFlySpeed, -0.01, TrafficStopClient.velocityFlySpeed));
                 player.setOnGround(false);
             }
         }
@@ -90,15 +92,57 @@ public class ClientMixinLocalPlayer {
             player.setDeltaMovement(player.getDeltaMovement().multiply(1, 0, 1).add(0, -0.1, 0));
             player.attack(player.getLastAttacker());
         }
+
+        if (TrafficStopClient.isJesus) {
+            net.minecraft.core.BlockPos feetPos = player.blockPosition();
+            net.minecraft.world.level.block.state.BlockState feetState =
+                    Minecraft.getInstance().level.getBlockState(feetPos);
+
+            boolean inFluid = !feetState.getFluidState().isEmpty();
+
+            if (inFluid) {
+                player.setOnGround(true);
+                double yVel = player.getDeltaMovement().y;
+                if (yVel < 0) {
+                    // Only cancel downward velocity, don't push up
+                    player.setDeltaMovement(
+                            player.getDeltaMovement().x,
+                            0,
+                            player.getDeltaMovement().z
+                    );
+                }
+            }
+        }
     }
+
+    private double fallStartY = Double.MAX_VALUE;
+    private boolean wasFalling = false;
 
     @Inject(method = "sendPosition", at = @At("HEAD"))
     private void onSendPosition(CallbackInfo ci) {
         LocalPlayer player = (LocalPlayer) (Object) this;
+        if (TrafficStopClient.isNoFall && !player.isSpectator() && !player.isCreative()) {
+            double currentY = player.getY();
+            boolean isFalling = player.getDeltaMovement().y < 0;
 
-        // Ensure module is on, player is not in creative/spectator, and they are moving downwards
-        if (TrafficStopClient.isGroundSpoof && !player.isSpectator() && !player.isCreative()) {
-            player.setOnGround(true);
+            if (isFalling) {
+                if (!wasFalling) {
+                    fallStartY = currentY;
+                    wasFalling = true;
+                }
+
+                double fallen = fallStartY - currentY;
+
+                if (fallen >= 1.0) {
+                    player.setOnGround(true);
+                    // Force send the packet immediately with onGround=true
+                    player.connection.send(new net.minecraft.network.protocol.game.ServerboundMovePlayerPacket.StatusOnly(true, false));
+                    fallStartY = currentY;
+                }
+            } else {
+                wasFalling = false;
+                fallStartY = currentY;
+            }
         }
     }
 }

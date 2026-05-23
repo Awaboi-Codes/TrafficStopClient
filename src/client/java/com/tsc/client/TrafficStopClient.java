@@ -1,15 +1,15 @@
-package com.tcc.client;
+package com.tsc.client;
 
-import com.tcc.client.util.detection.ProjectileDetector;
-import com.tcc.client.util.packetspoof.CombatUtil;
-import com.tcc.client.util.packetspoof.PacketPayload;
+import com.tcc.tscmain;
+import com.tsc.client.util.detection.ProjectileDetector;
+import com.tsc.client.util.packetspoof.CombatUtil;
+import com.tsc.client.util.packetspoof.PacketPayload;
 
 import com.mojang.blaze3d.platform.InputConstants;
-import com.tcc.client.util.render.RenderUtils;
+import com.tsc.client.util.packetspoof.SpoofData;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
-import net.fabricmc.fabric.api.client.rendering.v1.world.WorldRenderContext;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -24,17 +24,12 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.EntityHitResult;
-import net.fabricmc.fabric.mixin.client.keybinding.KeyMappingAccessor;
 import net.minecraft.client.KeyMapping;
-import net.minecraft.client.player.LocalPlayerResolver;
 import net.minecraft.network.chat.Component;
-import net.minecraft.server.packs.repository.Pack;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
 import org.lwjgl.glfw.GLFW;
 import net.minecraft.client.Minecraft;
-
-import static com.tcc.ExampleMod.MOD_ID;
 
 public class TrafficStopClient implements ClientModInitializer {
 
@@ -44,12 +39,16 @@ public class TrafficStopClient implements ClientModInitializer {
 
 	// Movement Booleans
 	public static boolean isFlying = false;
+	public static double velocityFlySpeed = 1;
 	public static boolean isElytraFly = false;
-	public static boolean isGroundSpoof = false;
+	public static boolean isNoFall = false;
 	public static boolean isElytraBoost = false;
 	public static boolean isElytraBoosting = false;
 	public static boolean isBoatFly = false;
 	public static boolean isStrafe = false;
+	public static boolean isJesus = false;
+	public static boolean isQuickElytraTakeoff = false;
+	public static boolean wasJumpPressed = false;
 
 	// Render Booleans
 	public static boolean isPlayerESP = false;
@@ -99,10 +98,9 @@ public class TrafficStopClient implements ClientModInitializer {
 		PayloadTypeRegistry.playC2S().register(PacketPayload.TYPE, PacketPayload.CODEC);
 
 
-
 		// 5. Register the single consolidated loop handler targeting the end of every individual client loop tick
 		ClientTickEvents.END_CLIENT_TICK.register(client -> {
-			com.tcc.client.util.packetspoof.SpoofData spoofedPacket = new com.tcc.client.util.packetspoof.SpoofData(null, 0.0D, false);
+			SpoofData spoofedPacket = new SpoofData(null, 0.0D, false);
 			boolean isAttackPressed = mc.options.keyAttack.isDown();
 			// --- MODULE A: ADMINISTRATION HUD SELECTION CHECKS ---
 			while (openHudKey.consumeClick()) {
@@ -111,11 +109,27 @@ public class TrafficStopClient implements ClientModInitializer {
 				}
 			}
 
+
+			if (mc.player != null && mc.options.keyUse.isDown()) {
+				tscmain.LOGGER.info("flySpeed: " + TrafficStopClient.velocityFlySpeed);
+			}
+
 			// Check if your NoFall checkbox/boolean is enabled from your ModHUD
-			if (isElytraBoost && elytraBoostKey.isDown()) {
+			if (isElytraBoost && elytraBoostKey.isDown() && client.player.isFallFlying()) {
 				isElytraBoosting = true;
 			} else {
 				isElytraBoosting = false;
+			}
+
+			if (isQuickElytraTakeoff && client.player != null) {
+				boolean jumpDown = client.options.keyJump.isDown();
+				if (jumpDown && !wasJumpPressed && !client.player.isFallFlying()) {
+					client.player.connection.send(new ServerboundPlayerCommandPacket(
+							client.player,
+							ServerboundPlayerCommandPacket.Action.START_FALL_FLYING
+					));
+				}
+				wasJumpPressed = jumpDown;
 			}
 
 			if (isKillAura) {
@@ -255,7 +269,7 @@ public class TrafficStopClient implements ClientModInitializer {
 			}
 
 			if (isFastUse) {
-				com.tcc.client.util.packetspoof.CombatUtil.tryFastUse();
+				CombatUtil.tryFastUse();
 			}
 				// Perform active physics adjustments if toggled on and player isn't in Spectator Mode
 				if (isFlying && client.player != null && !client.player.isSpectator()) {
@@ -263,7 +277,6 @@ public class TrafficStopClient implements ClientModInitializer {
 					boolean jump = client.options.keyJump.isDown();
 					boolean sneak = client.options.keyShift.isDown();
 
-					double speed = 1.5D;
 					double ySpeed = jump ? 0.4D : (sneak ? -0.4D : 0.0D);
 
 					// Read structural W/S (Forward) and A/D (Strafe) float multipliers (-1.0 to 1.0)
@@ -277,8 +290,8 @@ public class TrafficStopClient implements ClientModInitializer {
 					double radYaw = Math.toRadians(yaw);
 
 					// Compute absolute X and Z vector movements based on directional trigonometry matrices
-					double motionX = (forwardInput * -Math.sin(radYaw) + strafeInput * -Math.cos(radYaw)) * speed;
-					double motionZ = (forwardInput * Math.cos(radYaw) + strafeInput * -Math.sin(radYaw)) * speed;
+					double motionX = (forwardInput * -Math.sin(radYaw) + strafeInput * -Math.cos(radYaw)) * velocityFlySpeed;
+					double motionZ = (forwardInput * Math.cos(radYaw) + strafeInput * -Math.sin(radYaw)) * velocityFlySpeed;
 
 					// Force the player's underlying mechanical velocity attributes to match direction vectors
 					client.player.setDeltaMovement(motionX, ySpeed, motionZ);
@@ -293,8 +306,8 @@ public class TrafficStopClient implements ClientModInitializer {
 						double angle = java.util.concurrent.ThreadLocalRandom.current().nextDouble(0, 2 * Math.PI);
 
 						// 3. Calculate horizontal velocity vectors (X and Z)
-						double velocityX = Math.cos(angle) * speed;
-						double velocityZ = Math.sin(angle) * speed;
+						double velocityX = Math.cos(angle) * velocityFlySpeed;
+						double velocityZ = Math.sin(angle) * velocityFlySpeed;
 
 						// 4. Set the new velocity vector (keeping vertical Y velocity intact or slightly lifted)
 						mc.player.setDeltaMovement(velocityX, 0.1D, velocityZ);

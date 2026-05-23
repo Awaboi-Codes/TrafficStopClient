@@ -1,13 +1,9 @@
-package com.tcc.client;
+package com.tsc.client;
 
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.client.renderer.RenderPipelines;
-import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier; // Correct Yarn mapping asset import path
-import net.minecraft.sounds.SoundEvent;
-import net.minecraft.sounds.SoundEvents;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -37,7 +33,13 @@ public class ModHUD extends Screen {
         movementPanel.addButton(
                 "Velocity Fly",
                 () -> TrafficStopClient.isFlying,
-                () -> { TrafficStopClient.isFlying = !TrafficStopClient.isFlying; }
+                () -> { TrafficStopClient.isFlying = !TrafficStopClient.isFlying; },
+                List.of(
+                        new DraggablePanel.SliderSetting("Speed", 0.5, 5.0,
+                                () -> TrafficStopClient.velocityFlySpeed,
+                                v -> TrafficStopClient.velocityFlySpeed = v
+                        )
+                )
         );
 
         movementPanel.addButton(
@@ -53,9 +55,9 @@ public class ModHUD extends Screen {
         );
 
         movementPanel.addButton(
-                "Ground Spoof",
-                () -> TrafficStopClient.isGroundSpoof,
-                () -> { TrafficStopClient.isGroundSpoof = !TrafficStopClient.isGroundSpoof; }
+                "No Fall",
+                () -> TrafficStopClient.isNoFall,
+                () -> { TrafficStopClient.isNoFall = !TrafficStopClient.isNoFall; }
         );
 
         movementPanel.addButton(
@@ -68,6 +70,18 @@ public class ModHUD extends Screen {
                 "Strafe",
                 () -> TrafficStopClient.isStrafe,
                 () -> { TrafficStopClient.isStrafe = !TrafficStopClient.isStrafe; }
+        );
+
+        movementPanel.addButton(
+                "Jesus",
+                () -> TrafficStopClient.isJesus,
+                () -> { TrafficStopClient.isJesus = !TrafficStopClient.isJesus; }
+        );
+
+        movementPanel.addButton(
+                "Elytra Takeoff",
+                () -> TrafficStopClient.isQuickElytraTakeoff,
+                () -> { TrafficStopClient.isQuickElytraTakeoff = !TrafficStopClient.isQuickElytraTakeoff; }
         );
 
         DraggablePanel renderPanel = new DraggablePanel("Render", 120, 10, 100, 520);

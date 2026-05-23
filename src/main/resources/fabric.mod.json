@@ -16,12 +16,12 @@
 	"environment": "client",
 	"entrypoints": {
 		"main": [
-			"com.tcc.ExampleMod"
+			"com.tcc.tscmain"
 		],
 		"client": [
-			"com.tcc.client.TrafficStopClient",
-			"com.tcc.client.util.render.RenderUtils",
-			"com.tcc.client.util.render.HUDRenderUtils"
+			"com.tsc.client.TrafficStopClient",
+			"com.tsc.client.util.render.RenderUtils",
+			"com.tsc.client.util.render.HUDRenderUtils"
 		]
 	},
 	"mixins": [

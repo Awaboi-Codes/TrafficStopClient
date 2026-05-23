@@ -1,4 +1,4 @@
-package com.tcc.client;
+package com.tsc.client;
 
 public interface PanelAction {
     void onClick();
